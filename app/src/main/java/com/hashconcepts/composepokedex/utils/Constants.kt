@@ -6,4 +6,5 @@ package com.hashconcepts.composepokedex.utils
  * @author  ifechukwu.udorji
  */
 object Constants {
+    const val BASE_URL = "https://github.com/Biuni/PokemonGO-Pokedex/blob/master/"
 }
