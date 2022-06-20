@@ -3,15 +3,23 @@ package com.hashconcepts.composepokedex.utils
 import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
 import android.net.ConnectivityManager
+import android.net.ConnectivityManager.*
 import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET
 import android.net.NetworkRequest
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ExperimentalComposeApi
+import androidx.compose.runtime.State
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.LiveData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import java.io.IOException
 import java.net.InetSocketAddress
 import javax.net.SocketFactory
@@ -21,77 +29,63 @@ import javax.net.SocketFactory
  * @project ComposePokedex
  * @author  ifechukwu.udorji
  */
+sealed class ConnectionState {
+    object Available: ConnectionState()
+    object UnAvailable: ConnectionState()
+}
 
-const val TAG = "MyTagConnectionManager"
+@ExperimentalCoroutinesApi
+fun Context.observeConnectivityAsFlow() = callbackFlow {
+    val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val callback = NetworkCallback { connectionState -> trySend(connectionState) }
+    val networkRequest = NetworkRequest.Builder()
+        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        .build()
+    connectivityManager.registerNetworkCallback(networkRequest, callback)
+    val currentState = getCurrentConnectivityState(connectivityManager)
+    
+    trySend(currentState)
+    
+    awaitClose { 
+        connectivityManager.unregisterNetworkCallback(callback)
+    }
+}
 
-class ConnectionLiveData(context: Context) : LiveData<Boolean>() {
-
-    private lateinit var networkCallback: ConnectivityManager.NetworkCallback
-    private val connectivityManager =
-        context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-    private val validNetworks: MutableSet<Network> = HashSet()
-
-    private fun checkValidNetworks() {
-        postValue(validNetworks.size > 0)
+val Context.currentConnectivityState: ConnectionState
+    get() {
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return getCurrentConnectivityState(connectivityManager)
     }
 
-    override fun onActive() {
-        networkCallback = createNetworkCallback()
-        val networkRequest = NetworkRequest.Builder()
-            .addCapability(NET_CAPABILITY_INTERNET)
-            .build()
-        connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+fun getCurrentConnectivityState(connectivityManager: ConnectivityManager): ConnectionState {
+    val connected = connectivityManager.allNetworks.any { network ->
+        connectivityManager.getNetworkCapabilities(network)
+            ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            ?: false
     }
 
-    override fun onInactive() {
-        connectivityManager.unregisterNetworkCallback(networkCallback)
-    }
+    return if (connected) ConnectionState.Available else ConnectionState.UnAvailable
+}
 
-    private fun createNetworkCallback() = object : ConnectivityManager.NetworkCallback() {
-
+@Suppress("FunctionName")
+fun NetworkCallback(callback: (ConnectionState) -> Unit): ConnectivityManager.NetworkCallback {
+    return object : NetworkCallback() {
         override fun onAvailable(network: Network) {
-            Log.d(TAG, "onAvailable: $network")
-            val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
-            val hasInternetCapability = networkCapabilities?.hasCapability(NET_CAPABILITY_INTERNET)
-            Log.d(TAG, "onAvailable: ${network}, $hasInternetCapability")
-
-            if (hasInternetCapability == true) {
-                // Check if this network actually has internet
-                CoroutineScope(Dispatchers.IO).launch {
-                    val hasInternet = DoesNetworkHaveInternet.execute(network.socketFactory)
-                    if (hasInternet) {
-                        withContext(Dispatchers.Main) {
-                            Log.d(TAG, "onAvailable: adding network. $network")
-                            validNetworks.add(network)
-                            checkValidNetworks()
-                        }
-                    }
-                }
-            }
+            callback(ConnectionState.Available)
         }
 
         override fun onLost(network: Network) {
-            Log.d(TAG, "onLost: $network")
-            validNetworks.remove(network)
-            checkValidNetworks()
+            callback(ConnectionState.UnAvailable)
         }
     }
+}
 
-    object DoesNetworkHaveInternet {
-
-        fun execute(socketFactory: SocketFactory): Boolean {
-            // Make sure to execute this on a background thread.
-            return try {
-                Log.d(TAG, "PINGING Google...")
-                val socket = socketFactory.createSocket() ?: throw IOException("Socket is null.")
-                socket.connect(InetSocketAddress("8.8.8.8", 53), 1500)
-                socket.close()
-                Log.d(TAG, "PING success.")
-                true
-            } catch (e: IOException) {
-                Log.e(TAG, "No Internet Connection. $e")
-                false
-            }
-        }
+@OptIn(ExperimentalCoroutinesApi::class)
+@Composable
+fun connectivityState(): State<ConnectionState> {
+    val context = LocalContext.current
+    return produceState(initialValue = context.currentConnectivityState) {
+        context.observeConnectivityAsFlow().distinctUntilChanged().collect { value = it }
     }
 }

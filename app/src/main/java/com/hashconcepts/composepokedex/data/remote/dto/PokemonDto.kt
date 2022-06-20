@@ -1,6 +1,6 @@
 package com.hashconcepts.composepokedex.data.remote.dto
 
-data class Pokemon(
+data class PokemonDto(
     val avg_spawns: Double,
     val candy: String,
     val candy_count: Int,

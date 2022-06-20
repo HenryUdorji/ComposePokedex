@@ -2,7 +2,7 @@ package com.hashconcepts.composepokedex.presentation.screens
 
 import androidx.lifecycle.ViewModel
 import com.hashconcepts.composepokedex.data.remote.PokedexApi
-import com.hashconcepts.composepokedex.utils.ConnectionLiveData
+import com.hashconcepts.composepokedex.domain.repository.PokedexRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -14,11 +14,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PokedexViewModel @Inject constructor(
-    pokedexApi: PokedexApi,
-    connectionLiveData: ConnectionLiveData
+    pokedexRepository: PokedexRepository
 ): ViewModel() {
-
-    val connection = connectionLiveData
-
-
 }

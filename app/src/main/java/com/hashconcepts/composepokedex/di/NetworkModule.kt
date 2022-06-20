@@ -4,7 +4,6 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.hashconcepts.composepokedex.data.remote.PokedexApi
-import com.hashconcepts.composepokedex.utils.ConnectionLiveData
 import com.hashconcepts.composepokedex.utils.Constants
 import dagger.Module
 import dagger.Provides
@@ -65,11 +64,5 @@ object NetworkModule {
     @Singleton
     fun providesPokedexApi(retrofit: Retrofit): PokedexApi {
         return retrofit.create(PokedexApi::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun providesConnectionLiveData(@ApplicationContext context: Context): ConnectionLiveData {
-        return ConnectionLiveData(context)
     }
 }

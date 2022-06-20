@@ -65,6 +65,8 @@ dependencies {
     //System UI controller
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
 
+    implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
+
     //ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1"
 
