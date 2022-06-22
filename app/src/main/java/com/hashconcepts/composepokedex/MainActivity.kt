@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.hashconcepts.composepokedex.presentation.components.ConnectivityStatus
+import com.hashconcepts.composepokedex.presentation.navigation.Navigation
 import com.hashconcepts.composepokedex.presentation.screens.PokedexViewModel
 import com.hashconcepts.composepokedex.ui.theme.ComposePokedexTheme
 import com.hashconcepts.composepokedex.ui.theme.colorPrimary
@@ -27,31 +28,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ComposePokedexTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    Scaffold(
-                        topBar = {
-                            TopAppBar(
-                                title = {
-                                    Text(
-                                        text = "Pokedex",
-                                        modifier = Modifier.fillMaxWidth(),
-                                        textAlign = TextAlign.Center,
-                                        style = MaterialTheme.typography.h1,
-                                    )
-                                },
-                                backgroundColor = colorPrimary
-                            )
-                        }
-                    ) {
-                        Column {
-                            ConnectivityStatus()
-                        }
-                    }
-                }
+                Navigation()
             }
         }
     }
