@@ -1,4 +1,4 @@
-#ComposePokedex App
+# ComposePokedex App
 
 
 This is a small app but I tried to structure it following the clean architecture pattern - data, domain, presentation
