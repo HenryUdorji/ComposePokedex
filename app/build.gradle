@@ -66,6 +66,9 @@ dependencies {
     //System UI controller
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
 
+    //Flow layout
+    implementation "com.google.accompanist:accompanist-flowlayout:$accompanist_version"
+
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
 
     //ViewModel

@@ -2,6 +2,8 @@ package com.hashconcepts.composepokedex.data.remote.dto
 
 import android.graphics.Color
 import com.hashconcepts.composepokedex.domain.model.Pokemon
+import com.hashconcepts.composepokedex.utils.UtilMethods
+import com.hashconcepts.composepokedex.utils.UtilMethods.generateRandomColor
 import java.util.*
 
 data class PokemonDto(
@@ -33,11 +35,6 @@ fun PokemonDto.toPokemon(): Pokemon {
         weaknesses = weaknesses,
         weight = weight,
         height = height,
-        randomColor = generateRandomColor()
+        randomColor = UtilMethods.generateRandomColor()
     )
-}
-
-fun generateRandomColor(): Int {
-    val rnd = Random()
-    return Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256))
 }

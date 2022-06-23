@@ -9,4 +9,6 @@ val background = Color(0xFF2B292B)
 val background800 = Color(0xFF424242)
 val background900 = Color(0xFF212121)
 val bug = Color(0xFF179A55)
+val gray = Color(0xFFB1A5A5)
+
 
